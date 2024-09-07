@@ -11,6 +11,6 @@ export class Team {
   @Column()
   name: string;
 
-  @OneToMany(() => Task, (task) => task.assignee)
+  @Column('array')
   members: Task[];
 }

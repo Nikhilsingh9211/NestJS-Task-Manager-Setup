@@ -71,6 +71,7 @@ export class TeamService {
     // Save the updated team
     return this.teamRepository.save(team);
   }
+  
   getAllTeams() {
     return this.teamRepository.find({ relations: ['members'] });
   }

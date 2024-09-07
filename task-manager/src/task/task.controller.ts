@@ -43,4 +43,12 @@ export class TaskController {
   updateTaskStatus(@Param('id') id: string, @Body() body: { status: string }) {
     return this.taskService.updateTaskStatus(id, body.status);
   }
+
+  @Put(':taskId/assign')
+  assignTaskToMember(
+    @Param('taskId') taskId: string,
+    @Body() body: { memberId: string },
+  ) {
+    return this.taskService.assignTaskToMember(taskId, body.memberId);
+  }
 }
