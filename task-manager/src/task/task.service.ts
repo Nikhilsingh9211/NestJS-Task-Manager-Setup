@@ -47,9 +47,30 @@ export class TaskService {
   async getAllTasks() {
     return this.taskRepository.find();
   }
+  async updateTaskStatus(id: string, status?: string, description?: string) {
+    // Check if the task exists
+    const objectIdTaskId = ObjectId.isValid(id) ? new ObjectId(id) : null;
+    if (!objectIdTaskId) {
+      throw new NotFoundException('Invalid Team ID format');
+    }
 
-  async updateTaskStatus(id: string, status: string) {
-    return this.taskRepository.update(id, { status });
+    const task = await this.taskRepository.findOne({
+      where: { _id: objectIdTaskId },
+    });
+
+    if (!task) {
+      throw new NotFoundException(`Task with ID ${id} not found`);
+    }
+
+    // Update only the provided fields
+    if (status) {
+      task.status = status;
+    }
+    if (description) {
+      task.description = description;
+    }
+
+    return this.taskRepository.save(task); // Save the updated task
   }
 
   // New method to assign a task to a team member
