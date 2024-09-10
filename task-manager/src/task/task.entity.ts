@@ -14,7 +14,7 @@ export class Task {
   dueDate: Date;
 
   @Column()
-  assignee: string;
+  assignee: ObjectId; // Assignee's ObjectId reference
 
   @Column()
   status: string; // e.g., 'Pending', 'Completed'

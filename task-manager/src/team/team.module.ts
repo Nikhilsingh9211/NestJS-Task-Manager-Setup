@@ -1,22 +1,20 @@
 /* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { Team } from './team.entity';
 import { TeamService } from './team.service';
 import { TeamController } from './team.controller';
-import { Team } from './team.entity';
-import { Task } from '../task/task.entity'; // Import Task
-import { TaskModule } from '../task/task.module'; // Import TaskModule
+// import { Assignee } from 'src/assignee/assignee.entity';
+import { AssigneeModule } from 'src/assignee/assignee.module'; // Import AssigneeModule
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Team]), // Register Team entity
-    TaskModule, // Import the TaskModule which includes the Task entity
+    AssigneeModule, // Import the AssigneeModule
   ],
-  providers: [TeamService],
   controllers: [TeamController],
+  providers: [TeamService],
 })
-export class TeamModule {
-  
-}
+export class TeamModule {}
+

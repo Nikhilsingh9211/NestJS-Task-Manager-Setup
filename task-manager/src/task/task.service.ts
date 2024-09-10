@@ -3,27 +3,44 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from './task.entity';
-import { ObjectId } from 'mongodb'; // Import ObjectId from mongodb
+import { AssigneeService } from 'src/assignee/assignee.service';
+import { ObjectId } from 'mongodb';
 
 @Injectable()
 export class TaskService {
   constructor(
     @InjectRepository(Task)
     private taskRepository: Repository<Task>,
+    private assigneeService: AssigneeService, // Inject the AssigneeService
   ) {}
 
   async createTask(
     description: string,
     dueDate: Date,
-    assignee: string,
+    assigneeId: string,
     status: string,
   ) {
+    const assignee = await this.assigneeService.findAssigneeById(assigneeId);
+
+    // Get current date in UTC
+    const currentDate = new Date().toISOString();
+
+    // Convert both dates to UTC and compare
+    if (new Date(dueDate).toISOString() <= currentDate) {
+      throw new Error('The due date must be a future date.');
+    }
+
+    if (!assignee) {
+      throw new NotFoundException('Assignee not found');
+    }
+
     const task = this.taskRepository.create({
       description,
       dueDate,
-      assignee,
+      assignee: assignee._id, // Assign by ObjectId
       status,
     });
+
     return this.taskRepository.save(task);
   }
 
@@ -37,25 +54,54 @@ export class TaskService {
 
   // New method to assign a task to a team member
   async assignTaskToMember(taskId: string, memberId: string) {
-    // Convert memberId to ObjectId if valid
-    console.log(taskId)
-    console.log(ObjectId.isValid(taskId));
+    // Convert taskId to ObjectId if valid
     const objectIdTaskId = ObjectId.isValid(taskId)
       ? new ObjectId(taskId)
       : null;
 
-
     if (!objectIdTaskId) {
-      throw new NotFoundException('Invalid Member (Task) ID format');
+      throw new NotFoundException('Invalid Task ID format');
     }
+
+    // Find the task by ObjectId
     const task = await this.taskRepository.findOne({
       where: { _id: objectIdTaskId },
     });
-    console.log(task)
+
     if (!task) {
-      throw new Error('Task not found');
+      throw new NotFoundException('Task not found');
     }
-    task.assignee = memberId;
+
+    // Convert memberId to ObjectId before assigning
+    const objectIdMemberId = ObjectId.isValid(memberId)
+      ? new ObjectId(memberId)
+      : null;
+
+    if (!objectIdMemberId) {
+      throw new NotFoundException('Invalid Member ID format');
+    }
+
+    // Assign the member (assignee) to the task
+    task.assignee = objectIdMemberId; // Correctly assign ObjectId
+
+    // Save the updated task
     return this.taskRepository.save(task);
+  }
+
+  // New Method to Get Tasks by Assignee
+  async getTasksByAssignee(assigneeId: string) {
+    const objectIdAssigneeId = ObjectId.isValid(assigneeId)
+      ? new ObjectId(assigneeId)
+      : null;
+
+    if (!objectIdAssigneeId) {
+      throw new NotFoundException('Invalid Assignee ID format');
+    }
+
+    const tasks = await this.taskRepository.find({
+      where: { assignee: objectIdAssigneeId },
+    });
+
+    return tasks;
   }
 }

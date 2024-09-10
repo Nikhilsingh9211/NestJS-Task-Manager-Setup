@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+// import { ObjectId } from 'mongodb';
 
 @Controller('tasks')
 @UseGuards(JwtAuthGuard)
@@ -50,5 +51,10 @@ export class TaskController {
     @Body() body: { memberId: string },
   ) {
     return this.taskService.assignTaskToMember(taskId, body.memberId);
+  }
+
+  @Get('/assignee/:assigneeId')
+  getTasksByAssignee(@Param('assigneeId') assigneeId: string) {
+    return this.taskService.getTasksByAssignee(assigneeId);
   }
 }

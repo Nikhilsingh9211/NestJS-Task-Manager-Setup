@@ -1,7 +1,9 @@
 /* eslint-disable prettier/prettier */
-import { Entity, ObjectIdColumn, Column, OneToMany } from 'typeorm';
+import { Entity, ObjectIdColumn, Column } from 'typeorm';
 import { ObjectId } from 'mongodb';
-import { Task } from '../task/task.entity';
+import { Assignee } from 'src/assignee/assignee.entity';
+// import { Task } from '../task/task.entity';
+
 
 @Entity()
 export class Team {
@@ -12,5 +14,5 @@ export class Team {
   name: string;
 
   @Column('array')
-  members: Task[];
+  members: Assignee[];
 }

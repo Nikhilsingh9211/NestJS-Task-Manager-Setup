@@ -3,16 +3,16 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Team } from './team.entity';
-import { Task } from '../task/task.entity'; // Make sure to import Task
 import { ObjectId } from 'mongodb'; // Import ObjectId from mongodb
+import { Assignee } from 'src/assignee/assignee.entity';
 
 @Injectable()
 export class TeamService {
   constructor(
     @InjectRepository(Team)
     private teamRepository: Repository<Team>,
-    @InjectRepository(Task) // Inject the Task repository to manage tasks (members)
-    private taskRepository: Repository<Task>,
+    @InjectRepository(Assignee) // Inject the Assignee repository
+    private assigneeRepository: Repository<Assignee>,
   ) {}
 
   async createTeam(name: string) {
@@ -21,9 +21,7 @@ export class TeamService {
   }
 
   async addTeamMember(teamId: string, memberId: string) {
-    console.log(`Team ID: ${teamId}`);
-
-    // Convert teamId to ObjectId if valid
+    // Convert teamId to ObjectId
     const objectIdTeamId = ObjectId.isValid(teamId)
       ? new ObjectId(teamId)
       : null;
@@ -31,7 +29,7 @@ export class TeamService {
       throw new NotFoundException('Invalid Team ID format');
     }
 
-    // Fetch the team by ID, ensuring members is initialized
+    // Fetch the team
     const team = await this.teamRepository.findOne({
       where: { _id: objectIdTeamId },
       relations: ['members'],
@@ -41,37 +39,30 @@ export class TeamService {
       throw new NotFoundException('Team not found');
     }
 
-    // Initialize members array if it's undefined
-    if (!team.members) {
-      team.members = [];
-    }
-
-    // Convert memberId to ObjectId if valid
+    // Convert memberId to ObjectId
     const objectIdMemberId = ObjectId.isValid(memberId)
       ? new ObjectId(memberId)
       : null;
     if (!objectIdMemberId) {
-      throw new NotFoundException('Invalid Member (Task) ID format');
+      throw new NotFoundException('Invalid Member (Assignee) ID format');
     }
 
-    // Fetch the task (member) by its ID
-    const member = await this.taskRepository.findOne({
+    // Fetch the assignee (member)
+    const member = await this.assigneeRepository.findOne({
       where: { _id: objectIdMemberId },
     });
 
     if (!member) {
-      throw new NotFoundException('Member (Task) not found');
+      throw new NotFoundException('Assignee (Member) not found');
     }
 
-    console.log(`Member found: ${member}`);
-
-    // Add the member to the team
+    // Add the member (Assignee) to the team
     team.members.push(member);
 
     // Save the updated team
     return this.teamRepository.save(team);
   }
-  
+
   getAllTeams() {
     return this.teamRepository.find({ relations: ['members'] });
   }
